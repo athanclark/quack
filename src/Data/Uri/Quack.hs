@@ -6,6 +6,7 @@
 module Data.Uri.Quack
   ( Parser
   , runParser
+  , decodeUtf8Query
   , ParserError (..)
   , -- * Combining
     unlabeled
@@ -21,14 +22,17 @@ module Data.Uri.Quack
 import qualified Data.Attoparsec.Text as Atto  (Parser, parseOnly)
 import qualified Data.Aeson           as Aeson (FromJSON, eitherDecode)
 
-import Data.Text       as T
-import Data.Text.Lazy as LT
-import Data.Text.Lazy.Encoding as LT
+import qualified Data.Text               as T
+import qualified Data.Text.Encoding      as T
+import qualified Data.Text.Lazy          as LT
+import qualified Data.Text.Lazy.Encoding as LT
 import Data.Functor.Identity
 import Data.String (IsString (fromString))
 import Control.Applicative
 import Control.Monad.State
 import Control.Monad.Except
+
+import Network.HTTP.Types.URI (Query)
 
 
 
@@ -41,6 +45,10 @@ initParserState :: [(T.Text, Maybe T.Text)] -> ParserState
 initParserState xs = ParserState
   { parserStateToParse = xs
   }
+
+
+decodeUtf8Query :: Query -> [(T.Text, Maybe T.Text)]
+decodeUtf8Query = map (\(l,r) -> (T.decodeUtf8 l, T.decodeUtf8 <$> r))
 
 
 data ParserError
@@ -96,11 +104,15 @@ instance Alternative Parser where
         pure []
 
 -- | Parse /only/ the label, disregarding any @=@ value;
--- .
+--
 -- > unlabeled (attoparsec double)
--- . would parse something like
+--
+-- would parse something like
+--
 -- > "/foo?1234"
--- . /or/
+--
+-- /or/
+--
 -- > "/foo?1234=asdf"
 unlabeled :: PieceParser a -> Parser a
 unlabeled (PieceParser f) = Parser $ do
@@ -118,9 +130,11 @@ unlabeled (PieceParser f) = Parser $ do
 
 -- | Parse with a label, but throw the parse result of the
 --   label away;
--- .
+--
 -- > "foo" .= attoparsec double
--- . would parse something like
+--
+-- would parse something like
+--
 -- > "/foo?foo=1234"
 (.=) :: PieceParser a -> PieceParser b -> Parser b
 (PieceParser l) .= (PieceParser f) = Parser $ do
@@ -143,10 +157,12 @@ unlabeled (PieceParser f) = Parser $ do
 
 
 -- | @liftM2@ for parse results /between/ @=@, for instance:
--- .
+--
 -- > overEquals (,) (attoparsec $ double <* endOfInput)
 -- >                (attoparsec $ double <* endOfInput)
--- . would parse something like
+--
+-- would parse something like
+--
 -- > "/foo?1234=1234"
 overEquals :: (a -> b -> c) -> PieceParser a -> PieceParser b -> Parser c
 overEquals f (PieceParser l) (PieceParser r) = Parser $ do

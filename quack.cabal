@@ -19,6 +19,7 @@ Library
                       , attoparsec
                       , aeson
                       , text
+                      , http-types
 
 Source-Repository head
   Type:                 git
