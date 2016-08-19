@@ -39,6 +39,7 @@ initParserState xs = ParserState
 
 data ParserError
   = NoParse
+  deriving (Show, Eq)
 
 
 
@@ -70,6 +71,23 @@ instance Alternative Parser where
             put s'
             pure y'
           Left e -> throwError e
+  some f = Parser $ do
+    s <- get
+    case runParser' f s of
+      Right (x, s') -> do
+        put s'
+        xs <- getParser $ many f
+        pure (x:xs)
+      Left e -> throwError e
+  many f = Parser $ do
+    s <- get
+    case runParser' f s of
+      Right (x, s') -> do
+        put s'
+        xs <- getParser $ many f
+        pure (x:xs)
+      Left _ ->
+        pure []
 
 
 unlabeled :: PieceParser a -> Parser a
