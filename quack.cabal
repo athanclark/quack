@@ -5,7 +5,8 @@ Maintainer:             Athan Clark <athan.clark@gmail.com>
 License:                BSD3
 License-File:           LICENSE
 Synopsis:               Convenience parser combinators for URI query strings
--- Description:
+Description:            Check out the README
+Category:               Web
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
 
