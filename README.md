@@ -1,31 +1,30 @@
 # quack
 
-TODO: Write description here
+> If it looks like a quack, then it makes sense some other time.
 
-## Installation
+Super simple parser combinators for URI query strings!
 
-TODO: Write installation instructions here
+It just piggy-backs on existing high-performance parser combinators like
+[attoparsec](https://hackage.haskell.org/package/attoparsec) and
+[aeson](https://hackage.haskell.org/package/aeson) to parse data that looks
+like `[(Text, Maybe Text)]`. Check it out:
 
-## Usage
+```haskell
+import Data.Attoparsec.Text
+import Data.Uri.Query
 
-### Creating `x`
 
-TODO: Write usage instructions here
-
-### Combining `x`
-
-TODO: Write usage instructions here
-
-### Consuming `x`
-
-TODO: Write usage instructions here
-
-## How to run tests
-
-```
-cabal configure --enable-tests && cabal build && cabal test
+runParser (many (overEquals (,) (attoparsec double) (attoparsec double)))
+  [("123", Just "456"), ("123", Nothing), ("123", Just "456")]
 ```
 
-## Contributing
+returns
 
-TODO: Write contribution instructions here
+```
+Right [(123,456)]
+```
+
+It tries to follow the same semantics as attoparsec; backtrack on failure.
+It's implemented with a really really simple zipper between "parsed so far"
+and "to parse", if that makes sense - the head of "to parse" is the subject,
+while failure just reverts the append.
