@@ -136,7 +136,7 @@ unlabeled (PieceParser f) = Parser $ do
 -- would parse something like
 --
 -- > "/foo?foo=1234"
-(.=) :: PieceParser a -> PieceParser b -> Parser b
+(.=) :: PieceParser T.Text -> PieceParser b -> Parser b
 (PieceParser l) .= (PieceParser f) = Parser $ do
   s <- get
   case parserStateToParse s of
