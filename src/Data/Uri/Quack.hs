@@ -12,6 +12,7 @@ module Data.Uri.Quack
     unlabeled
   , (.=)
   , overEquals
+  , toMaybe
   , -- * Atoms
     fromUtf8
   , attoparsec
@@ -183,6 +184,9 @@ overEquals f (PieceParser l) (PieceParser r) = Parser $ do
                                pure (f l' r')
     _ -> throwError $ NoParse "end of query"
 
+
+toMaybe :: Parser a -> Parser (Maybe a)
+toMaybe p = (Just <$> p) <|> pure Nothing
 
 
 -- * Atoms
